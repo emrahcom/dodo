@@ -1,0 +1,152 @@
+#!/bin/bash
+set -e
+
+# -----------------------------------------------------------------------------
+# DODO
+# -----------------------------------------------------------------------------
+# Desktop on Digital Ocean
+#
+# https://github.com/emrahcom/dodo
+# version: 20200514.2150
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# trap on_exit
+# -----------------------------------------------------------------------------
+function on_exit {
+    rm -f /etc/apt/apt.conf.d/dodo-temp
+
+    echo
+
+    if [[ "$COMPLETED" != true ]]
+    then
+        echo "!!! something went wrong"
+        echo "!!! the installation couldn't be completed"
+    else
+        echo "!!! completed successfully"
+    fi
+}
+
+trap on_exit EXIT
+COMPLETED=false
+
+# -----------------------------------------------------------------------------
+# packages
+# -----------------------------------------------------------------------------
+cat <<EOF >/etc/apt/apt.conf.d/dodo-temp
+Dpkg::Options {
+    "--force-confdef";
+    "--force-confold";
+}
+EOF
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update && apt-get autoclean
+apt-get -dy dist-upgrade && apt-get -y dist-upgrade
+apt-get -y --purge autoremove
+
+apt-get -y install apt-utils
+apt-get -y install task-desktop task-mate-desktop
+apt-get -y install chromium firefox-esr
+apt-get -y install ssl-cert ca-certificates certbot
+apt-get -y install nginx
+apt-get -y install git
+apt-get -y install x11vnc pwgen
+apt-get -y install python3-pip python3-setuptools python3-wheel
+
+pip3 install websockify
+
+# -----------------------------------------------------------------------------
+# disabled services
+# -----------------------------------------------------------------------------
+systemctl stop lightdm.service
+systemctl disable lightdm.service
+
+systemctl stop ModemManager.service
+systemctl disable ModemManager.service
+
+systemctl stop wpa_supplicant.service
+systemctl disable wpa_supplicant.service
+
+systemctl stop NetworkManager.service
+systemctl disable NetworkManager.service
+
+# -----------------------------------------------------------------------------
+# x1vnc autostart
+# -----------------------------------------------------------------------------
+cat >/usr/local/bin/autostart-vnc <<EOF
+#!/bin/bash
+
+pkill -u $USER -f vnc-dodo
+sleep 2
+pkill -9 -u $USER -f vnc-dodo
+
+xset s off -dpms
+
+x11vnc -display :0 -localhost -autoport 9900 -noipv6 -nolookup \
+        -once -loop -usepw -shared -noxdamage -nodpms \
+            -tag vnc-dodo &
+EOF
+
+chmod +x /usr/local/bin/autostart-vnc
+
+cat >/etc/xdg/autostart/autostart-vnc.desktop <<EOF
+Name=Autostart VNC
+Comment=Autostart VNC
+Type=Application
+Terminal=false
+NoDisplay=true
+Exec=/usr/local/bin/autostart-vnc
+OnlyShowIn=MATE;XFCE;GNOME;
+X-MATE-Autostart-Phase=Application
+X-MATE-AutoRestart=false
+X-GNOME-Autostart-Phase=Application
+X-GNOME-AutoRestart=false
+EOF
+
+# -----------------------------------------------------------------------------
+# user dodo
+# -----------------------------------------------------------------------------
+# adduser
+id dodo 2>/dev/null || adduser dodo --disabled-password --gecos ""
+
+# autostart desktop
+[ -f /home/dodo/.bashrc ] || false
+
+grep 'exec startx' /home/dodo/.bashrc || cat >>/home/dodo/.bashrc <<EOF
+
+if [[ -z \$DISPLAY ]] && [[ \$(tty) = /dev/tty1 ]]
+then
+    exec startx
+fi
+EOF
+
+# disable some autostarted applications for dodo
+mkdir -p /home/dodo/.config/autostart
+
+for app in mate-power-manager mate-screensaver mate-volume-control-applet \
+           nm-applet orca-autostart pulseaudio
+do
+    if [ -f "/etc/xdg/autostart/$app.desktop" ]
+    then
+        cp /etc/xdg/autostart/$app.desktop /home/dodo/.config/autostart/
+
+        echo "X-MATE-Autostart-enabled=false" >> \
+            /home/dodo/.config/autostart/$app.desktop
+    fi
+done
+
+chown dodo:dodo /home/dodo/.config -R
+
+# vnc password
+mkdir -p /home/dodo/.vnc
+PASSWD=$(pwgen -B 20)
+x11vnc -storepasswd $PASSWD /home/dodo/.vnc/passwd
+chown dodo:dodo /home/dodo/.vnc -R
+
+# -----------------------------------------------------------------------------
+# completed
+# -----------------------------------------------------------------------------
+COMPLETED=true
+
+# vim: tw=79 ts=4 sw=4 sts=4 et
