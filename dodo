@@ -250,6 +250,7 @@ then
     cd /root/eb_ssl
     rm -f eb_CA.key
 
+    DATE=$(date +"%Y%m%d%H%M%S")
     openssl req -nodes -new -x509 -days 10950 \
         -keyout eb_CA.key -out eb_CA.pem \
         -subj "/O=emrah-buster/OU=CA/CN=emrah-buster $DATE-$RANDOM"
@@ -257,10 +258,10 @@ fi
 
 # self-signed certificate for the dodo domain
 cd /root/eb_ssl
-rm -f /root/eb_ssl/ssl_eb_dodo.*
+rm -f /root/eb_ssl/ssl-eb.*
 
 # the extension file for multiple hosts:
-cat >ssl_eb_dodo.ext <<EOF
+cat >ssl-eb.ext <<EOF
 authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
 keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
@@ -272,11 +273,11 @@ EOF
 HOSTNAME_SHORT=$(hostname)
 HOSTNAME_FQDN=$(hostname -f)
 
-echo "DNS.1 = $HOSTNAME_SHORT" >>ssl_eb_dodo.ext
+echo "DNS.1 = $HOSTNAME_SHORT" >>ssl-eb.ext
 
 if [[ -n "$HOSTNAME_FQDN" ]] && [[ "$HOSTNAME_SHORT" != "$HOSTNAME_FQDN" ]]
 then
-    echo "DNS.2 = $HOSTNAME_FQDN" >>ssl_eb_dodo.ext
+    echo "DNS.2 = $HOSTNAME_FQDN" >>ssl-eb.ext
 else
     HOSTNAME_FQDN=$HOSTNAME_SHORT
 fi
@@ -284,21 +285,21 @@ fi
 i=1
 for ip in $(hostname -I)
 do
-    echo "IP.$i = $ip" >>ssl_eb_dodo.ext
+    echo "IP.$i = $ip" >>ssl-eb.ext
     ((i = i + 1))
 done
 
 # the dodo key and the dodo certificate
 openssl req -nodes -newkey rsa:2048 \
-    -keyout ssl_eb_dodo.key -out ssl_eb_dodo.csr \
+    -keyout ssl-eb.key -out ssl-eb.csr \
     -subj "/O=emrah-buster/OU=dodo/CN=$HOSTNAME_FQDN"
 openssl x509 -req -CA eb_CA.pem -CAkey eb_CA.key -CAcreateserial \
-    -days 10950 -in ssl_eb_dodo.csr -out ssl_eb_dodo.pem \
-    -extfile ssl_eb_dodo.ext
+    -days 10950 -in ssl-eb.csr -out ssl-eb.pem \
+    -extfile ssl-eb.ext
 
 # copy into /etc/ssl
-cp ssl_eb_dodo.pem /etc/ssl/certs/
-cp ssl_eb_dodo.key /etc/ssl/private/
+cp ssl-eb.pem /etc/ssl/certs/
+cp ssl-eb.key /etc/ssl/private/
 
 # -----------------------------------------------------------------------------
 # websockify
@@ -316,8 +317,8 @@ cat >/usr/local/sbin/websockify-secure <<EOF
 #!/bin/bash
 
 websockify --heartbeat=30 \
-    --cert=/etc/ssl/certs/ssl_eb_dodo.pem \
-    --key=/etc/ssl/private/ssl_eb_dodo.key \
+    --cert=/etc/ssl/certs/ssl-eb.pem \
+    --key=/etc/ssl/private/ssl-eb.key \
     6090 127.0.0.1:9900
 EOF
 chmod u+x /usr/local/sbin/websockify-secure
@@ -390,8 +391,8 @@ server {
 
     listen 443 ssl default_server;
     listen [::]:443 ssl default_server;
-    ssl_certificate /etc/ssl/certs/ssl_eb_dodo.pem;
-    ssl_certificate_key /etc/ssl/private/ssl_eb_dodo.key;
+    ssl_certificate /etc/ssl/certs/ssl-eb.pem;
+    ssl_certificate_key /etc/ssl/private/ssl-eb.key;
     
     server_name _;
     root /var/www/html;

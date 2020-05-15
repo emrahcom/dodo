@@ -23,3 +23,28 @@ bash dodo
 ```
 
 ![dodo](dodo.png)
+
+
+---
+
+Let's Encrypt support
+=====================
+To use Let's Encrypt certificate, run the following commands
+
+```bash
+FQDN="your.host.fqdn"
+
+certbot certonly --webroot -w /var/www/html -d $FQDN
+
+chmod 750 /etc/letsencrypt/{archive,live}
+chown root:ssl-cert /etc/letsencrypt/{archive,live}
+rm -f /etc/ssl/certs/ssl-eb.pem
+rm -f /etc/ssl/private/ssl-eb.key
+ln -s /etc/letsencrypt/live/$FQDN/fullchain.pem \
+    /etc/ssl/certs/ssl-eb.pem
+ln -s /etc/letsencrypt/live/$FQDN/privkey.pem \
+    /etc/ssl/private/ssl-eb.key
+
+systemctl restart websockify-secure.service
+systemctl restart nginx.service
+```
