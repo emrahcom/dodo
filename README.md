@@ -1,4 +1,4 @@
-DODO
+dodo
 ====
 Desktop on [Digital Ocean](https://www.digitalocean.com/?refcode=92b0165840d8)
 
