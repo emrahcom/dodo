@@ -16,3 +16,5 @@ Create a new Debian buster droplet and run the following commands:
 wget https://raw.githubusercontent.com/emrahcom/dodo/master/dodo
 bash dodo
 ```
+
+![dodo](dodo.png)
