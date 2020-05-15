@@ -147,8 +147,7 @@ EOF
 # disable some autostarted applications for dodo
 mkdir -p /home/dodo/.config/autostart
 
-for app in mate-power-manager mate-screensaver mate-volume-control-applet \
-           nm-applet orca-autostart pulseaudio
+for app in mate-power-manager mate-screensaver nm-applet
 do
     if [[ -f "/etc/xdg/autostart/$app.desktop" ]]
     then
