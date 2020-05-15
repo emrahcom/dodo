@@ -46,7 +46,7 @@ function on_exit {
 @   x11vnc -storepasswd YOUR_PASSWORD /home/dodo/.vnc/passwd           @
 @                                                                      @
 @ This notes saved as README.dodo                                      @
-@                                                                      @
+@ For details, see https://github.com/emrahcom/dodo                    @
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 EOF
     fi
