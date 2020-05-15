@@ -7,7 +7,7 @@ set -e
 # Desktop on Digital Ocean
 #
 # https://github.com/emrahcom/dodo
-# version: 20200514.2150
+# version: 20200515.1810
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -16,19 +16,40 @@ set -e
 function on_exit {
     rm -f /etc/apt/apt.conf.d/dodo-temp
 
-    echo
-
     if [[ "$COMPLETED" != true ]]
     then
+        echo
         echo "!!! something went wrong"
         echo "!!! the installation couldn't be completed"
     else
-        echo "!!! completed successfully"
+        IP=$(hostname -I | awk '{print $1;}')
+
+        cat <<EOF | tee /root/README.dodo
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@                        INSTALLATION COMPLETED                        @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@                                                                      @
+@ Unsecure link (no certificate):                                      @
+@   http://$IP/novnc/?host=$IP&port=6080&encrypt=0&password=$PASSWD
+@                                                                      @
+@ Secure link (self-signed, needed to import the CA certificate):      @
+@   https://$IP/novnc/?host=$IP&port=6090&encrypt=1&password=$PASSWD
+@                                                                      @
+@ The CA certificate (add this as a trusted CA certificate):           @
+@   http://$IP//dodo-ca.pem                                            @
+@                                                                      @
+@ Current VNC Password: $PASSWD                                        @
+@                                                                      @
+@ To change password (as dodo user):                                   @
+@   x11vnc -storepasswd YOUR_PASSWORD /home/dodo/.vnc/passwd           @
+@                                                                      @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+EOF
     fi
 }
 
-trap on_exit EXIT
 COMPLETED=false
+trap on_exit EXIT
 
 # -----------------------------------------------------------------------------
 # packages
@@ -41,7 +62,7 @@ Dpkg::Options {
 EOF
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get update && apt-get autoclean
+apt update && apt-get autoclean
 apt-get -dy dist-upgrade && apt-get -y dist-upgrade
 apt-get -y --purge autoremove
 
@@ -72,25 +93,25 @@ systemctl stop NetworkManager.service
 systemctl disable NetworkManager.service
 
 # -----------------------------------------------------------------------------
-# x1vnc autostart
+# autostart x1vnc for the desktop users
 # -----------------------------------------------------------------------------
 cat >/usr/local/bin/autostart-vnc <<EOF
 #!/bin/bash
 
-pkill -u $USER -f vnc-dodo
+pkill -u \$USER -f vnc-dodo
 sleep 2
-pkill -9 -u $USER -f vnc-dodo
+pkill -9 -u \$USER -f vnc-dodo
 
 xset s off -dpms
 
 x11vnc -display :0 -localhost -autoport 9900 -noipv6 -nolookup \
-        -once -loop -usepw -shared -noxdamage -nodpms \
-            -tag vnc-dodo &
+    -once -loop -usepw -shared -noxdamage -nodpms -tag vnc-dodo &
 EOF
 
 chmod +x /usr/local/bin/autostart-vnc
 
 cat >/etc/xdg/autostart/autostart-vnc.desktop <<EOF
+[Desktop Entry]
 Name=Autostart VNC
 Comment=Autostart VNC
 Type=Application
@@ -105,13 +126,13 @@ X-GNOME-AutoRestart=false
 EOF
 
 # -----------------------------------------------------------------------------
-# user dodo
+# config for the user dodo
 # -----------------------------------------------------------------------------
-# adduser
+# adduser dodo
 id dodo 2>/dev/null || adduser dodo --disabled-password --gecos ""
 
-# autostart desktop
-[ -f /home/dodo/.bashrc ] || false
+# autostart desktop for dodo
+[[ -f /home/dodo/.bashrc ]] || false
 
 grep 'exec startx' /home/dodo/.bashrc || cat >>/home/dodo/.bashrc <<EOF
 
@@ -127,7 +148,7 @@ mkdir -p /home/dodo/.config/autostart
 for app in mate-power-manager mate-screensaver mate-volume-control-applet \
            nm-applet orca-autostart pulseaudio
 do
-    if [ -f "/etc/xdg/autostart/$app.desktop" ]
+    if [[ -f "/etc/xdg/autostart/$app.desktop" ]]
     then
         cp /etc/xdg/autostart/$app.desktop /home/dodo/.config/autostart/
 
@@ -138,11 +159,205 @@ done
 
 chown dodo:dodo /home/dodo/.config -R
 
-# vnc password
+# vnc password for dodo
 mkdir -p /home/dodo/.vnc
 PASSWD=$(pwgen -B 20)
 x11vnc -storepasswd $PASSWD /home/dodo/.vnc/passwd
 chown dodo:dodo /home/dodo/.vnc -R
+
+# -----------------------------------------------------------------------------
+# autologin on tty1 as the user dodo
+# -----------------------------------------------------------------------------
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+
+cat >/etc/systemd/system/getty@tty1.service.d/override.conf <<EOF
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty -a dodo --noclear %I \$TERM
+EOF
+
+systemctl daemon-reload
+systemctl restart getty@tty1
+sleep 2 & pkill -u dodo
+
+# -----------------------------------------------------------------------------
+# self-signed certificates
+# -----------------------------------------------------------------------------
+# the CA key and the CA certificate
+[[ ! -d "/root/eb_ssl" ]] && mkdir /root/eb_ssl
+
+if [[ ! -f "/root/eb_ssl/eb_CA.pem" ]]
+then
+    cd /root/eb_ssl
+    rm -f eb_CA.key
+
+    openssl req -nodes -new -x509 -days 10950 \
+        -keyout eb_CA.key -out eb_CA.pem \
+        -subj "/O=emrah-buster/OU=CA/CN=emrah-buster $DATE-$RANDOM"
+fi
+
+# self-signed certificate for the dodo domain
+cd /root/eb_ssl
+rm -f /root/eb_ssl/ssl_eb_dodo.*
+
+# the extension file for multiple hosts:
+cat >ssl_eb_dodo.ext <<EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+EOF
+
+HOSTNAME_SHORT=$(hostname)
+HOSTNAME_FQDN=$(hostname -f)
+
+echo "DNS.1 = $HOSTNAME_SHORT" >>ssl_eb_dodo.ext
+
+if [[ -n "$HOSTNAME_FQDN" ]] && [[ "$HOSTNAME_SHORT" != "$HOSTNAME_FQDN" ]]
+then
+    echo "DNS.2 = $HOSTNAME_FQDN" >>ssl_eb_dodo.ext
+else
+    HOSTNAME_FQDN=$HOSTNAME_SHORT
+fi
+
+i=1
+for ip in $(hostname -I)
+do
+    echo "IP.$i = $ip" >>ssl_eb_dodo.ext
+    ((i = i + 1))
+done
+
+# the dodo key and the dodo certificate
+openssl req -nodes -newkey rsa:2048 \
+    -keyout ssl_eb_dodo.key -out ssl_eb_dodo.csr \
+    -subj "/O=emrah-buster/OU=dodo/CN=$HOSTNAME_FQDN"
+openssl x509 -req -CA eb_CA.pem -CAkey eb_CA.key -CAcreateserial \
+    -days 10950 -in ssl_eb_dodo.csr -out ssl_eb_dodo.pem \
+    -extfile ssl_eb_dodo.ext
+
+# move into /etc/ssl
+cp ssl_eb_dodo.pem /etc/ssl/certs/
+cp ssl_eb_dodo.key /etc/ssl/private/
+
+# -----------------------------------------------------------------------------
+# websockify
+# -----------------------------------------------------------------------------
+# the websockify-unsecure application
+cat >/usr/local/sbin/websockify-unsecure <<EOF
+#!/bin/bash
+
+websockify --heartbeat=30 6080 127.0.0.1:9900
+EOF
+chmod u+x /usr/local/sbin/websockify-unsecure
+
+# the websockify-secure application
+cat >/usr/local/sbin/websockify-secure <<EOF
+#!/bin/bash
+
+websockify --heartbeat=30 \
+    --cert=/etc/ssl/certs/ssl_eb_dodo.pem \
+    --key=/etc/ssl/private/ssl_eb_dodo.key \
+    6090 127.0.0.1:9900
+EOF
+chmod u+x /usr/local/sbin/websockify-secure
+
+# the websockify-unsecure service
+cat >/etc/systemd/system/websockify-unsecure.service <<EOF
+[Unit]
+Description=Websockify Unsecure
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+Group=root
+ExecStart=/usr/local/sbin/websockify-unsecure
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# the websockify-secure service
+cat >/etc/systemd/system/websockify-secure.service <<EOF
+[Unit]
+Description=Websockify Secure
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+Group=root
+ExecStart=/usr/local/sbin/websockify-secure
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable websockify-unsecure.service
+systemctl start websockify-unsecure.service
+systemctl enable websockify-secure.service
+systemctl start websockify-secure.service
+
+# -----------------------------------------------------------------------------
+# novnc
+# -----------------------------------------------------------------------------
+if [[ -d "/var/www/novnc" ]]
+then
+    cd /var/www/novnc
+    git pull
+else
+    git clone --depth=1 https://github.com/novnc/noVNC.git /var/www/novnc
+fi
+
+# -----------------------------------------------------------------------------
+# nginx
+# -----------------------------------------------------------------------------
+# put the dodo CA certificate in a downloadable area
+cp /root/eb_ssl/eb_CA.pem /var/www/html/dodo-ca.pem
+touch /var/www/html/index.html
+
+# nginx conf
+cat >/etc/nginx/sites-available/dodo.conf <<EOF
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    ssl_certificate /etc/ssl/certs/ssl_eb_dodo.pem;
+    ssl_certificate_key /etc/ssl/private/ssl_eb_dodo.key;
+    
+    server_name _;
+    root /var/www/html;
+    index index.html index.htm;
+    
+    location /.well-known {
+        root /var/www/html;
+    }
+    
+    location /novnc {
+        root /var/www;
+        index vnc.html;
+        add_header Cache-Control no-cache;
+    }
+    
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOF
+
+ln -sf ../sites-available/dodo.conf /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+
+systemctl restart nginx
 
 # -----------------------------------------------------------------------------
 # completed
