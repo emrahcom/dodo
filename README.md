@@ -27,7 +27,7 @@ bash dodo
 
 ---
 
-##### Let's Encrypt support
+#### Let's Encrypt support
 To use Let's Encrypt certificate, run the following commands
 
 ```bash
