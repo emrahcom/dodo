@@ -15,6 +15,11 @@ Thanks to [noVNC](https://github.com/novnc/noVNC),
 [x11vnc](http://www.karlrunge.com/x11vnc/) and
 [websockify](https://github.com/novnc/websockify)
 
+
+---
+
+
+#### Installation
 Create a new Debian Buster droplet and run the following commands as `root`:
 
 ```bash
@@ -22,10 +27,16 @@ wget https://raw.githubusercontent.com/emrahcom/dodo/master/dodo
 bash dodo
 ```
 
+
+---
+
+
+#### Screenshot
 ![dodo](dodo.png)
 
 
 ---
+
 
 #### Let's Encrypt support
 To use Let's Encrypt certificate, run the following commands
