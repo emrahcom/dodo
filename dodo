@@ -68,8 +68,8 @@ apt update && apt-get autoclean
 apt-get -dy dist-upgrade && apt-get -y dist-upgrade
 apt-get -y --purge autoremove
 
-apt-get -y install apt-utils
-apt-get -y install task-desktop task-mate-desktop
+apt-get -y install apt-utils apt-transport-https
+apt-get -y install task-desktop task-mate-desktop dconf-cli
 apt-get -y install chromium firefox-esr
 apt-get -y install ssl-cert ca-certificates certbot
 apt-get -y install nginx
@@ -78,6 +78,20 @@ apt-get -y install x11vnc pwgen
 apt-get -y install python3-pip python3-setuptools python3-wheel
 
 pip3 install websockify
+
+# -----------------------------------------------------------------------------
+# virtualbox
+# -----------------------------------------------------------------------------
+cat >/etc/apt/sources.list.d/virtualbox.list <<EOF
+deb https://download.virtualbox.org/virtualbox/debian buster contrib
+EOF
+
+wget https://download.virtualbox.org/virtualbox/debian/oracle_vbox_2016.asc \
+    -O /tmp/oracle_vbox_2016.asc
+apt-key add /tmp/oracle_vbox_2016.asc
+
+apt-get update
+apt-get -y --install-recommends install virtualbox-6.1
 
 # -----------------------------------------------------------------------------
 # disabled services
@@ -93,6 +107,46 @@ systemctl disable wpa_supplicant.service
 
 systemctl stop NetworkManager.service
 systemctl disable NetworkManager.service
+
+# -----------------------------------------------------------------------------
+# dconf
+# -----------------------------------------------------------------------------
+mkdir -p /etc/dconf/profile
+mkdir -p /etc/dconf/db/dodo.d
+
+cat >/etc/dconf/profile/user <<EOF
+user-db:user
+system-db:dodo
+EOF
+
+cat >/etc/dconf/db/dodo.d/disable-log-out <<EOF
+[org/mate/desktop/lockdown]
+disable-log-out=true
+EOF
+
+cat >/etc/dconf/db/dodo.d/user-switching <<EOF
+[org/mate/desktop/lockdown]
+disable-user-switching=true
+EOF
+
+cat >/etc/dconf/db/dodo.d/disable-lock-screen <<EOF
+[org/mate/desktop/lockdown]
+disable-lock-screen=true
+EOF
+
+cat >/etc/dconf/db/dodo.d/screensaver <<EOF
+[org/mate/screensaver]
+idle-activation-enabled=false
+lock-enabled=false
+user-switch-enabled=false
+EOF
+
+cat >/etc/dconf/db/dodo.d/click-policy <<EOF
+[org/mate/caja/preferences]
+click-policy='single'
+EOF
+
+dconf update
 
 # -----------------------------------------------------------------------------
 # autostart x1vnc for the desktop users
@@ -179,8 +233,9 @@ ExecStart=-/sbin/agetty -a dodo --noclear %I \$TERM
 EOF
 
 systemctl daemon-reload
-systemctl restart getty@tty1
-sleep 2 & pkill -u dodo
+systemctl stop getty@tty1
+pkill -u dodo && sleep 0.2 && pkill -9 -u dodo
+systemctl start getty@tty1
 
 # -----------------------------------------------------------------------------
 # self-signed certificates
