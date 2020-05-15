@@ -6,9 +6,10 @@ This script install a [MATE](https://mate-desktop.org/) desktop on the
 [Debian Buster](https://www.debian.org/) droplet (Digital Ocean's cloud
 computer) and you can use it via the web browser.
 
-A team can share the same desktop session at the same time. It's very suitable
-for the collaboration or for the remote demonstration. It's possible to run
-different operating systems at the same session via virtualization too.
+A team can share a desktop session at the same time. It's very suitable for the
+collaboration or for the remote demonstration. It's also possible to run
+different operating systems on the same session via
+[VirtualBox](https://www.virtualbox.org/) too.
 
 Thanks to [noVNC](https://github.com/novnc/noVNC),
 [x11vnc](http://www.karlrunge.com/x11vnc/) and
