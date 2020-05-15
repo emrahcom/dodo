@@ -1,6 +1,6 @@
 DODO
 ====
-Desktop on (Digital Ocean)[https://www.digitalocean.com/?refcode=92b0165840d8]
+Desktop on [Digital Ocean](https://www.digitalocean.com/?refcode=92b0165840d8)
 
 This script install a MATE desktop on the Debian Buster droplet (Digital
 Ocean's cloud computer) and you can use it via the web browser.
