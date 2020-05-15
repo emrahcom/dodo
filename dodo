@@ -7,7 +7,7 @@ set -e
 # Desktop on Digital Ocean
 #
 # https://github.com/emrahcom/dodo
-# version: 20200515.1810
+# version: 20200515.2010
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -38,12 +38,14 @@ function on_exit {
 @   https://$IP/novnc/?host=$IP&port=6090&encrypt=1&password=$PASSWD
 @                                                                      @
 @ The CA certificate (add this as a trusted CA certificate):           @
-@   http://$IP//dodo-ca.pem                                            @
+@   http://$IP/dodo-ca.pem
 @                                                                      @
-@ Current VNC Password: $PASSWD                                        @
+@ Current VNC Password: $PASSWD
 @                                                                      @
 @ To change password (as dodo user):                                   @
 @   x11vnc -storepasswd YOUR_PASSWORD /home/dodo/.vnc/passwd           @
+@                                                                      @
+@ This notes saved as README.dodo                                      @
 @                                                                      @
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 EOF
@@ -124,7 +126,7 @@ cat >/etc/dconf/db/dodo.d/disable-log-out <<EOF
 disable-log-out=true
 EOF
 
-cat >/etc/dconf/db/dodo.d/user-switching <<EOF
+cat >/etc/dconf/db/dodo.d/disable-user-switching <<EOF
 [org/mate/desktop/lockdown]
 disable-user-switching=true
 EOF
@@ -294,7 +296,7 @@ openssl x509 -req -CA eb_CA.pem -CAkey eb_CA.key -CAcreateserial \
     -days 10950 -in ssl_eb_dodo.csr -out ssl_eb_dodo.pem \
     -extfile ssl_eb_dodo.ext
 
-# move into /etc/ssl
+# copy into /etc/ssl
 cp ssl_eb_dodo.pem /etc/ssl/certs/
 cp ssl_eb_dodo.key /etc/ssl/private/
 
@@ -415,6 +417,19 @@ ln -sf ../sites-available/dodo.conf /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 
 systemctl restart nginx
+
+# -----------------------------------------------------------------------------
+# certbot
+# -----------------------------------------------------------------------------
+mkdir -p /etc/systemd/system/certbot.service.d
+
+cat >/etc/systemd/system/certbot.service.d/override.conf <<EOF
+[Service]
+ExecStartPost=
+ExecStartPost=/bin/systemctl reload nginx.service
+EOF
+
+systemctl daemon-reload
 
 # -----------------------------------------------------------------------------
 # completed
