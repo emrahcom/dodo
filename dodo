@@ -151,7 +151,7 @@ EOF
 dconf update
 
 # -----------------------------------------------------------------------------
-# autostart x1vnc for the desktop users
+# autostart x11vnc for the desktop users
 # -----------------------------------------------------------------------------
 cat >/usr/local/bin/autostart-vnc <<EOF
 #!/bin/bash
