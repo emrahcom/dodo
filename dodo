@@ -381,6 +381,8 @@ fi
 # -----------------------------------------------------------------------------
 # put the dodo CA certificate in a downloadable area
 cp /root/eb_ssl/eb_CA.pem /var/www/html/dodo-ca.pem
+
+# welcome page
 cat >/var/www/html/index.html <<EOF
 <!DOCTYPE html>
 <html>
