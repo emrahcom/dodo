@@ -381,7 +381,31 @@ fi
 # -----------------------------------------------------------------------------
 # put the dodo CA certificate in a downloadable area
 cp /root/eb_ssl/eb_CA.pem /var/www/html/dodo-ca.pem
-touch /var/www/html/index.html
+cat >/var/www/html/index.html <<EOF
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to dodo!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to dodo!</h1>
+<p>If you see this page, the dodo server is successfully installed and
+working.</p>
+
+<p>For online documentation and support please refer to
+<a href="https://github.com/emrahcom/dodo">dodo on GitHub</a>.<br/>
+
+<p><em>Thank you for using dodo.</em></p>
+</body>
+</html>
+EOF
 
 # nginx conf
 cat >/etc/nginx/sites-available/dodo.conf <<EOF
