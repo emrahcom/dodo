@@ -2,12 +2,17 @@ dodo
 ====
 Desktop on [Digital Ocean](https://www.digitalocean.com/?refcode=92b0165840d8)
 
+
+---
+
+
+#### About
 This script install a [MATE](https://mate-desktop.org/) desktop on the
 [Debian Buster](https://www.debian.org/) droplet (Digital Ocean's cloud
 computer) and you can use it via the web browser.
 
-A team can share a desktop session at the same time. It's very suitable for the
-collaboration or for the remote demonstration. It's also possible to run
+A team can share the desktop session at the same time. It's very suitable for
+the collaboration or for the remote demonstration. It's also possible to run
 different operating systems on the same session via
 [VirtualBox](https://www.virtualbox.org/) too.
 
@@ -20,7 +25,8 @@ Thanks to [noVNC](https://github.com/novnc/noVNC),
 
 
 #### Installation
-Create a new Debian Buster droplet and run the following commands as `root`:
+Create a new Debian Buster (Debian 10) droplet and run the following commands
+as `root`:
 
 ```bash
 wget https://raw.githubusercontent.com/emrahcom/dodo/master/dodo
@@ -39,7 +45,7 @@ bash dodo
 
 
 #### Let's Encrypt support
-To use Let's Encrypt certificate, run the following commands
+To use Let's Encrypt certificate, run the following commands:
 
 ```bash
 FQDN="your.host.fqdn"
