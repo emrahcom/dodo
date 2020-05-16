@@ -1,6 +1,6 @@
 dodo
 ====
-Desktop on [Digital Ocean](https://www.digitalocean.com/?refcode=92b0165840d8)
+Desktop on [DigitalOcean](https://www.digitalocean.com/?refcode=92b0165840d8)
 
 
 ---
@@ -8,7 +8,7 @@ Desktop on [Digital Ocean](https://www.digitalocean.com/?refcode=92b0165840d8)
 
 #### About
 This script install a [MATE](https://mate-desktop.org/) desktop on the
-[Debian Buster](https://www.debian.org/) droplet (Digital Ocean's cloud
+[Debian Buster](https://www.debian.org/) droplet (DigitalOcean's cloud
 computer) and you can use it via the web browser.
 
 A team can share the desktop session at the same time. It's very suitable for
