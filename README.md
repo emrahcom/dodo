@@ -45,7 +45,7 @@ bash dodo
 
 
 #### Let's Encrypt support
-To use Let's Encrypt certificate, run the following commands:
+Run the following commands to add Let's Encrypt certificate:
 
 ```bash
 FQDN="your.host.fqdn"
