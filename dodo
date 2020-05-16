@@ -22,6 +22,8 @@ function on_exit {
         echo "!!! something went wrong"
         echo "!!! the installation couldn't be completed"
     else
+        mv /var/www/html/welcome.html /var/www/html/index.html
+
         IP=$(hostname -I | awk '{print $1;}')
 
         cat <<EOF | tee /root/README.dodo
@@ -383,7 +385,7 @@ fi
 cp /root/eb_ssl/eb_CA.pem /var/www/html/dodo-ca.pem
 
 # welcome page
-cat >/var/www/html/index.html <<EOF
+cat >/var/www/html/welcome.html <<EOF
 <!DOCTYPE html>
 <html>
 <head>
