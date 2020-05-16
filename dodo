@@ -427,6 +427,7 @@ mkdir -p /etc/systemd/system/certbot.service.d
 cat >/etc/systemd/system/certbot.service.d/override.conf <<EOF
 [Service]
 ExecStartPost=
+ExecStartPost=/bin/systemctl restart websockify-secure.service
 ExecStartPost=/bin/systemctl reload nginx.service
 EOF
 
