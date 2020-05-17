@@ -95,10 +95,11 @@ wget https://download.virtualbox.org/virtualbox/debian/oracle_vbox_2016.asc \
 apt-key add /tmp/oracle_vbox_2016.asc
 
 apt-get update
-[ -n "$(uname -r | grep 'cloud-amd64')" ] && \
-    apt-get -y --install-recommends install linux-headers-cloud-amd64 || \
-    apt-get -y --install-recommends install linux-headers-amd64
+apt-get -y install linux-headers-$(uname -r)
 apt-get -y --install-recommends install virtualbox-6.1
+[ -n "$(uname -r | grep 'cloud-amd64')" ] && \
+    apt-get -y install linux-headers-cloud-amd64 || \
+    apt-get -y install linux-headers-amd64
 
 # -----------------------------------------------------------------------------
 # disabled services
