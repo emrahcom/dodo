@@ -95,6 +95,7 @@ wget https://download.virtualbox.org/virtualbox/debian/oracle_vbox_2016.asc \
 apt-key add /tmp/oracle_vbox_2016.asc
 
 apt-get update
+apt-get -y --install-recommends install linux-headers-$(uname -r)
 apt-get -y --install-recommends install virtualbox-6.1
 
 # -----------------------------------------------------------------------------
