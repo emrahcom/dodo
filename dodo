@@ -162,9 +162,8 @@ dconf update
 cat >/usr/local/bin/autostart-vnc <<EOF
 #!/bin/bash
 
-pkill -u \$USER -f vnc-dodo
-sleep 2
-pkill -9 -u \$USER -f vnc-dodo
+pkill -u \$USER -f vnc-dodo; sleep 2
+pkill -u \$USER -f vnc-dodo -9; sleep 1
 
 xset s off -dpms
 
@@ -203,6 +202,7 @@ grep 'exec startx' /home/dodo/.bashrc || cat >>/home/dodo/.bashrc <<EOF
 if [[ -z \$DISPLAY ]] && [[ \$(tty) = /dev/tty1 ]]
 then
     exec startx
+    exit
 fi
 EOF
 
@@ -241,9 +241,9 @@ ExecStart=-/sbin/agetty -a dodo --noclear %I \$TERM
 EOF
 
 systemctl daemon-reload
-systemctl stop getty@tty1
-pkill -u dodo && sleep 0.2 && pkill -9 -u dodo
-systemctl start getty@tty1
+systemctl stop getty@tty1.service
+pkill -u dodo; sleep 0.2; pkill -9 -u dodo; sleep 0.2
+systemctl start getty@tty1.service
 
 # -----------------------------------------------------------------------------
 # self-signed certificates
