@@ -34,10 +34,10 @@ function on_exit {
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @                                                                      @
 @ Unsecure link (no certificate):                                      @
-@   http://$IP/novnc/?host=$IP&port=6080&encrypt=0&password=$PASSWD
+@   http://$IP/novnc/?host=$IP&port=6080&encrypt=0&resize=scale&password=$PASSWD
 @                                                                      @
 @ Secure link (self-signed, needed to import the CA certificate):      @
-@   https://$IP/novnc/?host=$IP&port=6090&encrypt=1&password=$PASSWD
+@   https://$IP/novnc/?host=$IP&port=6090&encrypt=1&resize=scale&password=$PASSWD
 @                                                                      @
 @ The CA certificate (add this as a trusted CA certificate):           @
 @   http://$IP/dodo-ca.pem
