@@ -16,8 +16,7 @@ set -e
 function on_exit {
     rm -f /etc/apt/apt.conf.d/dodo-temp
 
-    if [[ "$COMPLETED" != true ]]
-    then
+    if [[ "$COMPLETED" != true ]]; then
         echo
         echo "!!! something went wrong"
         echo "!!! the installation couldn't be completed"
@@ -51,6 +50,15 @@ function on_exit {
 @ For details, see https://github.com/emrahcom/dodo                    @
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 EOF
+
+        if [ "$ACTIVE_SESSION" = true ]; then
+            cat <<EOF
+@                                                                      @
+@   It's detected an already running session. You may need to reboot.  @
+@                                                                      @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+EOF
+        fi
     fi
 }
 
@@ -199,8 +207,7 @@ id dodo 2>/dev/null || adduser dodo --disabled-password --gecos ""
 
 grep 'exec startx' /home/dodo/.bashrc || cat >>/home/dodo/.bashrc <<EOF
 
-if [[ -z \$DISPLAY ]] && [[ \$(tty) = /dev/tty1 ]]
-then
+if [[ -z \$DISPLAY ]] && [[ \$(tty) = /dev/tty1 ]]; then
     exec startx
     exit
 fi
@@ -212,8 +219,7 @@ mkdir -p /home/dodo/.config/autostart
 for app in mate-power-manager mate-screensaver nm-applet \
     mate-volume-control-applet pulseaudio
 do
-    if [[ -f "/etc/xdg/autostart/$app.desktop" ]]
-    then
+    if [[ -f "/etc/xdg/autostart/$app.desktop" ]]; then
         cp /etc/xdg/autostart/$app.desktop /home/dodo/.config/autostart/
 
         echo "X-MATE-Autostart-enabled=false" >> \
@@ -233,17 +239,19 @@ chown dodo:dodo /home/dodo/.vnc -R
 # autologin on tty1 as the user dodo
 # -----------------------------------------------------------------------------
 mkdir -p /etc/systemd/system/getty@tty1.service.d
-
 cat >/etc/systemd/system/getty@tty1.service.d/override.conf <<EOF
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty -a dodo --noclear %I \$TERM
 EOF
-
 systemctl daemon-reload
-systemctl stop getty@tty1.service
-pkill -u dodo; sleep 0.2; pkill -9 -u dodo; sleep 0.2
-systemctl start getty@tty1.service
+
+# if this is a reinstall time then reboot is needed
+if pgrep -u dodo >/dev/null; then
+    ACTIVE_SESSION=true
+else
+    systemctl restart getty@tty1.service
+fi
 
 # -----------------------------------------------------------------------------
 # self-signed certificates
@@ -251,8 +259,7 @@ systemctl start getty@tty1.service
 # the CA key and the CA certificate
 [[ ! -d "/root/eb_ssl" ]] && mkdir /root/eb_ssl
 
-if [[ ! -f "/root/eb_ssl/eb_CA.pem" ]]
-then
+if [[ ! -f "/root/eb_ssl/eb_CA.pem" ]]; then
     cd /root/eb_ssl
     rm -f eb_CA.key
 
@@ -289,8 +296,7 @@ else
 fi
 
 i=1
-for ip in $(hostname -I)
-do
+for ip in $(hostname -I); do
     echo "IP.$i = $ip" >>ssl-eb.ext
     ((i = i + 1))
 done
@@ -374,8 +380,7 @@ systemctl start websockify-secure.service
 # -----------------------------------------------------------------------------
 # novnc
 # -----------------------------------------------------------------------------
-if [[ -d "/var/www/novnc" ]]
-then
+if [[ -d "/var/www/novnc" ]]; then
     cd /var/www/novnc
     git pull
 else
