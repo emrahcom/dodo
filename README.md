@@ -66,5 +66,5 @@ systemctl restart nginx.service
 Try to connect using your FQDN. For example:
 
 ```
-https://your.host.fqdn/novnc/?host=your.host.fqdn&port=6090&encrypt=1&password=YOUR-PASSWORD
+https://your.host.fqdn/novnc/?host=your.host.fqdn&port=6090&encrypt=1&resize=scale&password=YOUR-PASSWORD
 ```
