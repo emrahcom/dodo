@@ -44,7 +44,7 @@ function on_exit {
 @ Current VNC Password: $PASSWD
 @                                                                      @
 @ To change password (as dodo user):                                   @
-@   x11vnc -storepasswd YOUR_PASSWORD /home/dodo/.vnc/passwd           @
+@   x11vnc -storepasswd /home/dodo/.vnc/passwd                         @
 @                                                                      @
 @ This notes saved as README.dodo                                      @
 @ For details, see https://github.com/emrahcom/dodo                    @
