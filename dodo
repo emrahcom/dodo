@@ -7,7 +7,7 @@ set -e
 # Desktop on DigitalOcean
 #
 # https://github.com/emrahcom/dodo
-# version: 20210210.1047
+# version: 20210210.1101
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -16,7 +16,7 @@ set -e
 function on_exit {
     rm -f /etc/apt/apt.conf.d/dodo-temp
 
-    if [[ -n "$NEW_KERNEL" ]]; then
+    if [[ -f /tmp/dodo-new-kernel ]]; then
         echo
         echo "!!! The kernel is upgraded"
         echo "!!! Please reboot with the new kernel and try again"
@@ -84,8 +84,10 @@ apt update && apt-get autoclean
 
 NEW_KERNEL=$(apt list --upgradable | grep linux-image- || true)
 apt-get -dy dist-upgrade && apt-get -y dist-upgrade
+[[ -n "$NEW_KERNEL" ]] && touch /tmp/dodo-new-kernel
+[[ -f /tmp/dodo-new-kernel ]] && exit 1
+
 apt-get -y --purge autoremove
-[[ -n "$NEW_KERNEL" ]] && exit 1
 
 apt-get -y install apt-utils apt-transport-https
 apt-get -y install task-desktop task-mate-desktop dconf-cli
