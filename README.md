@@ -29,7 +29,7 @@ Create a new Debian Buster (Debian 10) droplet and run the following commands
 as `root`:
 
 ```bash
-wget https://raw.githubusercontent.com/emrahcom/dodo/master/dodo
+wget -O dodo https://raw.githubusercontent.com/emrahcom/dodo/master/dodo
 bash dodo
 ```
 
