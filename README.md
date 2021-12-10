@@ -4,12 +4,12 @@ Desktop on the cloud
 
 #### About
 
-This script install a [MATE](https://mate-desktop.org/) desktop on the
+This installer creates a [MATE](https://mate-desktop.org/) desktop on the
 [Debian Bullseye](https://www.debian.org/) cloud machine and you can use it via
 the web browser.
 
-A team can share a desktop session at the same time. It's very suitable for the
-collaboration or for the remote demonstration. It's also possible to run
+A team can share this desktop environment at the same time. It's very suitable
+for the collaboration or for the remote demonstration. It's also possible to run
 different operating systems on the same session via
 [virt-manager](https://virt-manager.org/) or
 [VirtualBox](https://www.virtualbox.org/) too.
