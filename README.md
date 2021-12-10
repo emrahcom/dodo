@@ -1,6 +1,6 @@
 ## dodo
 
-Desktop on [DigitalOcean](https://m.do.co/c/92b0165840d8)
+Desktop on the cloud
 
 #### About
 
