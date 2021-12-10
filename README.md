@@ -1,6 +1,6 @@
 ## dodo
 
-Desktop on the cloud
+Debian desktop on the cloud
 
 #### About
 
