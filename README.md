@@ -5,8 +5,8 @@ Desktop on the cloud
 #### About
 
 This script install a [MATE](https://mate-desktop.org/) desktop on the
-[Debian Bullseye](https://www.debian.org/) droplet (DigitalOcean's cloud
-computer) and you can use it via the web browser.
+[Debian Bullseye](https://www.debian.org/) cloud machine and you can use it via
+the web browser.
 
 A team can share a desktop session at the same time. It's very suitable for the
 collaboration or for the remote demonstration. It's also possible to run
@@ -20,7 +20,7 @@ Thanks to [noVNC](https://github.com/novnc/noVNC),
 
 #### Installation
 
-Create a new Debian 11 Bullseye droplet and run the following commands as
+Create a new Debian 11 Bullseye cloud machine and run the following commands as
 `root`:
 
 ```bash
