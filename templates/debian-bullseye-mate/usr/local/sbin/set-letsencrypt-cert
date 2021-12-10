@@ -28,6 +28,8 @@ EOF
 certbot certonly --dry-run --non-interactive -m info@$FQDN --agree-tos \
     --duplicate --webroot -w /var/www/html -d $FQDNS || true
 sleep 3
+certbot certonly --dry-run --non-interactive -m info@$FQDN --agree-tos \
+    --duplicate --webroot -w /var/www/html -d $FQDNS
 certbot certonly $DRYRUN --non-interactive -m info@$FQDN --agree-tos \
     --duplicate --webroot -w /var/www/html -d $FQDNS
 
