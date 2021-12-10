@@ -1,50 +1,39 @@
-dodo
-====
-Desktop on [DigitalOcean](https://www.digitalocean.com/?refcode=92b0165840d8)
+## dodo
 
-
----
-
+Desktop on [DigitalOcean](https://m.do.co/c/92b0165840d8)
 
 #### About
+
 This script install a [MATE](https://mate-desktop.org/) desktop on the
-[Debian Buster](https://www.debian.org/) droplet (DigitalOcean's cloud
+[Debian Bullseye](https://www.debian.org/) droplet (DigitalOcean's cloud
 computer) and you can use it via the web browser.
 
-A team can share the desktop session at the same time. It's very suitable for
-the collaboration or for the remote demonstration. It's also possible to run
+A team can share a desktop session at the same time. It's very suitable for the
+collaboration or for the remote demonstration. It's also possible to run
 different operating systems on the same session via
+[virt-manager](https://virt-manager.org/) or
 [VirtualBox](https://www.virtualbox.org/) too.
 
 Thanks to [noVNC](https://github.com/novnc/noVNC),
 [x11vnc](http://www.karlrunge.com/x11vnc/) and
 [websockify](https://github.com/novnc/websockify)
 
-
----
-
-
 #### Installation
-Create a new Debian Buster (Debian 10) droplet and run the following commands
-as `root`:
+
+Create a new Debian 11 Bullseye droplet and run the following commands as
+`root`:
 
 ```bash
-wget -O dodo https://raw.githubusercontent.com/emrahcom/dodo/master/dodo
-bash dodo
+wget -O dodo-bullseye-installer https://raw.githubusercontent.com/emrahcom/dodo/master/dodo-bullseye-installer
+bash dodo-bullseye-installer
 ```
 
-
----
-
-
 #### Screenshot
+
 ![dodo](dodo.png)
 
-
----
-
-
 #### Let's Encrypt support
+
 Run the following commands to add Let's Encrypt certificate:
 
 ```bash
